@@ -28,5 +28,6 @@ class AuthRepository {
       client.release()
     }
   }
+  findUserByEmail = async (email: string): Promise<UserLoginData | null> => {}
 }
 export default AuthRepository
