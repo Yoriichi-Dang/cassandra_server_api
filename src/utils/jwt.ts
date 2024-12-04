@@ -1,9 +1,9 @@
 import jwt, { TokenExpiredError } from 'jsonwebtoken'
 
-type JwtPayload = { id: string; username: string; email: string }
+type JwtPayload = { id: string; email: string }
 
-const createToken = ({ id, username, email }: JwtPayload, expiresIn: string): string => {
-  const token = jwt.sign({ id, username, email }, process.env.JWT_SECRET as string, {
+const createToken = ({ id, email }: JwtPayload, expiresIn: string): string => {
+  const token = jwt.sign({ id, email }, process.env.JWT_SECRET as string, {
     expiresIn
   })
   return token
