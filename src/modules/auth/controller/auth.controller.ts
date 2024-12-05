@@ -43,6 +43,11 @@ class AuthController {
     const refreshToken = createToken({ id: userLoginData.id, email: userLoginData.email }, '30d')
     res.status(200).send({ accessToken, refreshToken })
   }
+  refreshToken = async (req: Request, res: Response) => {
+    const { refreshToken } = req.body
+    console.log(refreshToken)
+  }
+  logout = async (req: Request, res: Response) => {}
 }
 
 export default AuthController

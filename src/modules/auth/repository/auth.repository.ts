@@ -22,6 +22,7 @@ class AuthRepository {
       const userId = result.rows[0].id
       const queryText2 = 'INSERT INTO users_account(id, username) VALUES($1, $2)'
       await client.query(queryText2, [userId, username])
+      client.release()
       return userId
     } catch (e) {
       throw new Error('Internal server error ' + e)
