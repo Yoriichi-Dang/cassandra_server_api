@@ -22,7 +22,7 @@ class AuthController {
     if (userId == 0) {
       res.status(400).send({ message: 'Email already exist' })
     } else if (userId == -1) {
-      res.status(500).send('Internal server error')
+      res.status(400).send({ message: 'Username already exist' })
     } else {
       res.status(201).send({ userId })
     }
@@ -45,7 +45,6 @@ class AuthController {
   }
   refreshToken = async (req: Request, res: Response) => {
     const { refreshToken } = req.body
-    console.log(refreshToken)
   }
   logout = async (req: Request, res: Response) => {}
 }

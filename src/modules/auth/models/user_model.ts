@@ -1,7 +1,8 @@
 type UserModel = {
-  id: string
+  id?: string
   username: string
   email: string
+  phone: string
   full_name: string
   avatar_url: string
   district: string
@@ -10,8 +11,8 @@ type UserModel = {
   day_of_birth: Date
   gender: string
   description: string
-  password_hash: string
-  created_at: Date
-  updated_at: Date
+  password_hash?: string
+  created_at?: Date
+  updated_at?: Date
 }
 export default UserModel

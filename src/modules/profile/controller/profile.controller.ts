@@ -1,5 +1,5 @@
 import ProfileService from '../service/profile.service'
-import { Request, Response } from 'express'
+import { Response } from 'express'
 import { TokenDecodeRequest } from '@/types/type'
 import UserDto from '../dtos/user_dto'
 import UserModel from '@/modules/auth/models/user_model'
@@ -35,6 +35,43 @@ class ProfileController {
     const { avatar_url } = req.body
     const profile: UserModel | null = await this.profileService.updateProfileImage(id, avatar_url)
     res.status(200).send(profile)
+  }
+  getUserPosts = async (req: TokenDecodeRequest, res: Response) => {
+    if (!req.user) {
+      res.status(400).send({ message: 'Invalid token' })
+      return
+    }
+    const { id } = req.user
+    const posts = await this.profileService.getUserPosts(id)
+    res.status(200).send(posts)
+  }
+  updateUsername = async (req: TokenDecodeRequest, res: Response) => {
+    if (!req.user) {
+      res.status(400).send({ message: 'Invalid token' })
+      return
+    }
+    const { id } = req.user
+    const { username } = req.body
+    const profile: UserModel | null = await this.profileService.updateUsername(id, username)
+    if (!profile) {
+      res.status(400).send({ message: 'Username already exist' })
+    } else {
+      res.status(200).send(profile)
+    }
+  }
+  updatePhoneEmail = async (req: TokenDecodeRequest, res: Response) => {
+    if (!req.user) {
+      res.status(400).send({ message: 'Invalid token' })
+      return
+    }
+    const { id } = req.user
+    const userDto: UserDto = req.body
+    const profile: UserModel | null = await this.profileService.updatePhoneEmail(id, userDto)
+    if (!profile) {
+      res.status(400).send({ message: 'Phone or email already exist' })
+    } else {
+      res.status(200).send(profile)
+    }
   }
 }
 export default ProfileController
