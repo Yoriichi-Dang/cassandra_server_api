@@ -9,4 +9,5 @@ router.get('/posts', authMiddleware, profileController.getUserPosts)
 router.patch('/username', authMiddleware, profileController.updateUsername)
 router.patch('/phone-email', authMiddleware, profileController.updatePhoneEmail)
 router.patch('/avatar', authMiddleware, profileController.updateProfileImage)
+router.get('/:username', profileController.findUsersByUsername)
 export default router

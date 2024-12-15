@@ -12,6 +12,8 @@ type UserModel = {
   gender: string
   description: string
   password_hash?: string
+  following?: number | 0
+  follower?: number | 0
   created_at?: Date
   updated_at?: Date
 }

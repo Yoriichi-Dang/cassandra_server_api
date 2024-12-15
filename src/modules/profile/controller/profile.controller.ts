@@ -1,5 +1,5 @@
 import ProfileService from '../service/profile.service'
-import { Response } from 'express'
+import { Response, Request } from 'express'
 import { TokenDecodeRequest } from '@/types/type'
 import UserDto from '../dtos/user_dto'
 import UserModel from '@/modules/auth/models/user_model'
@@ -43,6 +43,10 @@ class ProfileController {
     }
     const { id } = req.user
     const posts = await this.profileService.getUserPosts(id)
+    if (!posts) {
+      res.status(200).send([])
+      return
+    }
     res.status(200).send(posts)
   }
   updateUsername = async (req: TokenDecodeRequest, res: Response) => {
@@ -73,5 +77,23 @@ class ProfileController {
       res.status(200).send(profile)
     }
   }
+  findUsersByUsername = async (req: Request, res: Response) => {
+    const { username } = req.params
+    const users: UserModel[] | null = await this.profileService.findUserByUsername(username as string)
+    if (!users) {
+      res.status(404).send({ message: 'User not found' })
+      return
+    }
+    res.status(200).send(users)
+  }
+  // getUserProfileById = async (req: Request, res: Response) => {
+  //   const { id } = req.params
+  //   const userDto: UserDto | null = await this.profileService.getProfile(id)
+  //   if (!userDto) {
+  //     res.status(404).send({ message: 'User not found' })
+  //     return
+  //   }
+  //   res.status(200).send(userDto)
+  // }
 }
 export default ProfileController

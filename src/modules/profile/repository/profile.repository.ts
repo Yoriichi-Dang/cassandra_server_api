@@ -5,14 +5,17 @@ import { Pool } from 'pg'
 import UserDto from '../dtos/user_dto'
 import PostModel from '@/modules/posts/models/post_model'
 import AuthRepository from '@/modules/auth/repository/auth.repository'
+import FollowRepository from '@/modules/follow/repository/follow.repository'
 
 class ProfileRepository {
   private db: Pool
   private authRepository: AuthRepository
+  private followRepository: FollowRepository
 
   constructor() {
     this.db = dbConnection.getPool()
     this.authRepository = new AuthRepository()
+    this.followRepository = new FollowRepository()
   }
   findProfile = async (id: string) => {
     const query = `
@@ -31,6 +34,7 @@ class ProfileRepository {
       if (!result[0] || typeof result[0] !== 'object') {
         throw new Error('Invalid result format')
       }
+      const followCount = await this.followRepository.getFollowCount(id)
       const userModel: UserModel = {
         id: result[0].id,
         email: result[0].email,
@@ -45,6 +49,8 @@ class ProfileRepository {
         gender: result[0].gender,
         description: result[0].description,
         password_hash: result[0].password_hash,
+        following: followCount.following,
+        follower: followCount.follower,
         created_at: result[0].created_at,
         updated_at: result[0].updated_at
       }
@@ -188,6 +194,47 @@ class ProfileRepository {
         return null
       }
       return result
+    } catch (error) {
+      throw new Error(String(error))
+    }
+  }
+  findUsersByUsername = async (username: string): Promise<UserModel[] | null> => {
+    const query = `
+       SELECT * 
+      FROM users_account
+      INNER JOIN users_login_data ON users_account.user_id = users_login_data.id
+      WHERE LOWER(username) LIKE LOWER($1);
+        `
+    const values = [`%${username}%`]
+    try {
+      const result = await queryData<UserModel>(this.db, query, values)
+
+      if (result.length === 0) {
+        return null
+      }
+      // Check if the result is a valid array of objects
+      if (!Array.isArray(result) || result.some((item) => typeof item !== 'object')) {
+        throw new Error('Invalid result format')
+      }
+      // Map through the result to create a list of UserModel
+      const usersList: UserModel[] = result.map((item) => ({
+        id: item.id,
+        email: item.email,
+        username: item.username,
+        avatar_url: item.avatar_url,
+        phone: item.phone,
+        full_name: item.full_name,
+        district: item.district,
+        province: item.province,
+        address: item.address,
+        day_of_birth: item.day_of_birth,
+        gender: item.gender,
+        description: item.description,
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }))
+
+      return usersList
     } catch (error) {
       throw new Error(String(error))
     }

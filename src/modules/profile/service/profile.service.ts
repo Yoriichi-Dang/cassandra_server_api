@@ -24,6 +24,8 @@ class ProfileService {
       address: userModel.address,
       day_of_birth: userModel.day_of_birth,
       gender: userModel.gender,
+      follower: userModel.follower,
+      following: userModel.following,
       description: userModel.description
     }
     return userDto
@@ -62,6 +64,9 @@ class ProfileService {
     }
     const userModel: UserModel | null = await this.profileRepository.findProfile(id)
     return userModel
+  }
+  findUserByUsername = async (username: string): Promise<UserModel[] | null> => {
+    return await this.profileRepository.findUsersByUsername(username)
   }
 }
 export default ProfileService

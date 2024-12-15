@@ -3,6 +3,8 @@ import { Response, Request } from 'express'
 import PostService from '../service/post.service'
 import PostDto from '../dtos/post_dto'
 import PostModel from '../models/post_model'
+import { JwtPayload } from 'jsonwebtoken'
+import { verifyToken } from '@/utils/jwt'
 
 class PostController {
   private postService: PostService
@@ -27,7 +29,6 @@ class PostController {
       res.status(201).send({ post: result })
     }
   }
-  getListPostFollow = async (req: Request, res: Response): Promise<void> => {}
   getPostDetail = async (req: Request, res: Response): Promise<void> => {
     const { postId } = req.params
     const result = await this.postService.getPostById(postId)
@@ -37,6 +38,20 @@ class PostController {
       res.status(200).send(result)
     }
   }
+  getListPost = async (req: TokenDecodeRequest, res: Response): Promise<void> => {
+    const isLogin = req.user ? true : false
+  }
+  getAllPostsAuth = async (req: TokenDecodeRequest, res: Response): Promise<void> => {
+    const isLogin = req.user ? true : false
+    if (isLogin && req.user) {
+      console.log(req.user)
+      const posts = await this.postService.getAllPostByUserId(req.user.id)
+      res.status(200).send(posts)
+    } else {
+      res.status(200).send([])
+    }
+  }
+
   updatePost = async (req: Request, res: Response): Promise<void> => {}
   deletePost = async (req: Request, res: Response): Promise<void> => {}
 }

@@ -3,6 +3,7 @@ import { Pool } from 'pg'
 import PostModel from '../models/post_model'
 import UserPostModel from '../models/user_post_model'
 import UserModel from '@/modules/auth/models/user_model'
+import { queryData } from '@/utils/query'
 
 class PostRepository {
   private pg: Pool
@@ -34,6 +35,19 @@ class PostRepository {
       const insertUserPostValues = [postModel.userIdPost, post.id]
       const resUserPost = await client.query(insertUserPostText, insertUserPostValues)
       const userPost = resUserPost.rows[0]
+      const insertPostStateText = `
+        INSERT INTO "post_state" ("id", "state") VALUES ($1, $2)
+        `
+      if (postModel.state == 'all') {
+        const insertPostStateValues = [post.id, postModel.state]
+        await client.query(insertPostStateText, insertPostStateValues)
+      } else if (postModel.state == 'private') {
+        const insertPostStateValues = [post.id, 'private']
+        await client.query(insertPostStateText, insertPostStateValues)
+      } else {
+        const insertPostStateValues = [post.id, 'follower']
+        await client.query(insertPostStateText, insertPostStateValues)
+      }
       await client.query('COMMIT')
       return userPost.id
     } catch (e) {
@@ -82,6 +96,32 @@ class PostRepository {
       userPost: user
     }
     return userPost
+  }
+  getAllPostByUserId = async (userId: string): Promise<UserPostModel[]> => {
+    const queryText = `
+    SELECT posts.*,ua.*
+    FROM posts
+    INNER JOIN user_posts up ON up.post_id = posts.id
+    INNER JOIN users_account ua ON up.user_id = ua.user_id
+        WHERE posts.id IN (
+    SELECT post_state.id
+    FROM post_state
+    WHERE post_state.state = 'all'
+    )
+    OR posts.id IN (
+    SELECT posts.id
+    FROM user_follows uf
+    INNER JOIN user_posts up ON uf.user_following_id = up.user_id
+    INNER JOIN posts ON up.post_id = posts.id
+    WHERE uf.user_id = $1
+    );
+    `
+    const result = await queryData<UserPostModel>(this.pg, queryText, [userId])
+    console.log(result)
+    if (result.length === 0) {
+      return []
+    }
+    return result
   }
 }
 export default PostRepository
