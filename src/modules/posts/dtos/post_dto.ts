@@ -1,6 +1,6 @@
 type PostDto = {
   content: string
-  imageUrl: string
+  image_url: string
   caption?: string
 }
 export default PostDto

@@ -20,7 +20,7 @@ class PostController {
     const { id } = req.user
     const postModel: PostModel = {
       ...postDto,
-      userIdPost: id
+      user_id_post: id
     }
     const result = await this.postService.createPost(postModel)
     if (result == -1) {
@@ -38,20 +38,30 @@ class PostController {
       res.status(200).send(result)
     }
   }
-  getListPost = async (req: TokenDecodeRequest, res: Response): Promise<void> => {
-    const isLogin = req.user ? true : false
+  getPostsPublicAll = async (req: Request, res: Response): Promise<void> => {
+    const result = await this.postService.getPostsPublicAll()
+    res.status(200).send(result)
   }
   getAllPostsAuth = async (req: TokenDecodeRequest, res: Response): Promise<void> => {
     const isLogin = req.user ? true : false
     if (isLogin && req.user) {
-      console.log(req.user)
       const posts = await this.postService.getAllPostByUserId(req.user.id)
       res.status(200).send(posts)
     } else {
       res.status(200).send([])
     }
   }
-
+  getPostUserFollow = async (req: TokenDecodeRequest, res: Response): Promise<void> => {
+    const userId = req.query.userId as string
+    const { id } = req.user as JwtPayload
+    const posts = await this.postService.getPostUserFollow(id, userId)
+    res.status(200).send(posts)
+  }
+  getPostPublicAllByUserId = async (req: Request, res: Response): Promise<void> => {
+    const userIdParam = req.query.userId as string
+    const posts = await this.postService.getPostPublicAllByUserId(userIdParam)
+    res.status(200).send(posts)
+  }
   updatePost = async (req: Request, res: Response): Promise<void> => {}
   deletePost = async (req: Request, res: Response): Promise<void> => {}
 }

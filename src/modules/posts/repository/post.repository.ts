@@ -24,7 +24,7 @@ class PostRepository {
       await client.query('BEGIN')
       const insertPostText =
         'INSERT INTO posts(content, image_url, caption) VALUES($1, $2, $3) RETURNING  "id", "content", "image_url", "caption", "created_at", "updated_at"'
-      const insertPostValues = [postModel.content, postModel.imageUrl || null, postModel.caption || null]
+      const insertPostValues = [postModel.content, postModel.image_url || null, postModel.caption || null]
       const resPost = await client.query(insertPostText, insertPostValues)
       const post = resPost.rows[0]
       const insertUserPostText = `
@@ -32,7 +32,7 @@ class PostRepository {
         VALUES ($1, $2)
         RETURNING "id", "user_id", "post_id", "created_at", "updated_at"
       `
-      const insertUserPostValues = [postModel.userIdPost, post.id]
+      const insertUserPostValues = [postModel.user_id_post, post.id]
       const resUserPost = await client.query(insertUserPostText, insertUserPostValues)
       const userPost = resUserPost.rows[0]
       const insertPostStateText = `
@@ -74,7 +74,7 @@ class PostRepository {
     const post: PostModel = {
       id: result.rows[0].id,
       content: result.rows[0].content,
-      imageUrl: result.rows[0].image_url,
+      image_url: result.rows[0].image_url,
       caption: result.rows[0].caption
     }
     const user: UserModel = {
@@ -117,11 +117,73 @@ class PostRepository {
     );
     `
     const result = await queryData<UserPostModel>(this.pg, queryText, [userId])
-    console.log(result)
     if (result.length === 0) {
       return []
     }
     return result
+  }
+  getPostsPublicAll = async (): Promise<UserPostModel[]> => {
+    const queryText = `
+   SELECT posts.*,ua.*
+    FROM posts
+    INNER JOIN user_posts up ON up.post_id = posts.id
+    INNER JOIN users_account ua ON up.user_id = ua.user_id
+    WHERE posts.id IN (
+        SELECT post_state.id
+        FROM post_state
+        WHERE post_state.state = 'all'
+    )   
+    `
+    const result = await queryData<UserPostModel>(this.pg, queryText, [])
+    if (result.length === 0) {
+      return []
+    }
+    return result
+  }
+  getPostUserFollow = async (userId: string, userIdFollow: string): Promise<PostModel[]> => {
+    const queryText = `
+    select p.*
+from user_follows uf
+inner join user_posts up on uf.user_following_id=up.user_id
+inner join posts p on up.post_id=p.id
+inner join post_state ps on p.id=ps.id
+where p.id in(
+select post_state.id from post_state
+where post_state.state = 'follower' or post_state.state='all'
+)
+and uf.user_id=$1 and uf.user_following_id=$2
+    `
+    const result = await queryData<PostModel>(this.pg, queryText, [userId, userIdFollow])
+    if (result.length === 0) {
+      return []
+    }
+    return result
+  }
+  getPostPublicAllByUserId = async (userId: string): Promise<PostModel[]> => {
+    const queryText = `
+    select p.*,ps.state
+from users_account ua
+inner join user_posts up on ua.user_id=up.user_id
+inner join posts p on up.post_id=p.id
+inner join post_state ps on p.id=ps.id
+where p.id in(
+select post_state.id from post_state
+where post_state.state='all'
+)
+and ua.user_id=$1
+    `
+    const result = await queryData<PostModel>(this.pg, queryText, [userId])
+    if (result.length === 0) {
+      return []
+    }
+    return result.map((post) => {
+      return {
+        id: post.id,
+        content: post.content,
+        image_url: post.image_url,
+        state: post.state
+      }
+    })
   }
 }
 export default PostRepository

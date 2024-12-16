@@ -16,6 +16,15 @@ class PostService {
   getAllPostByUserId = async (userId: string): Promise<UserPostModel[]> => {
     return await this.postRepository.getAllPostByUserId(userId)
   }
+  getPostsPublicAll = async (): Promise<UserPostModel[]> => {
+    return await this.postRepository.getPostsPublicAll()
+  }
+  getPostUserFollow = async (userId: string, userIdFollow: string): Promise<PostModel[]> => {
+    return await this.postRepository.getPostUserFollow(userId, userIdFollow)
+  }
+  getPostPublicAllByUserId = async (userId: string): Promise<PostModel[]> => {
+    return await this.postRepository.getPostPublicAllByUserId(userId)
+  }
 }
 
 export default PostService
